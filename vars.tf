@@ -1,10 +1,4 @@
-variable "AWS_ACCESS_KEY" {
-  
-}
 
-variable "AWS_SECRET_KEY" {
-  
-}
 
 variable "KEY_PATH" {
   type = map(string)
