@@ -9,8 +9,7 @@ variable "AWS_SECRET_KEY" {
 variable "KEY_PATH" {
   type = map(string)
   default = {
-    public  = "~/digital/terraform/learn/assessment/aws_key.pub"
-    private = "~/digital/terraform/learn/assessment/aws_key"
+    public  = "~/var/lib/jenkins/aws_key.pub"
   }
 }
 
