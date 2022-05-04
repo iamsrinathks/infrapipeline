@@ -19,12 +19,18 @@ pipeline {
 
         stage('terraform plan') {
             steps {
+            withCredentials([usernamePassword(credentialsId: 'aws_jenkins_cred', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 sh 'terraform plan'
+              }
+
             }
         }
         stage('terraform apply') {
             steps {
+            withCredentials([usernamePassword(credentialsId: 'aws_jenkins_cred', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 sh 'terraform apply --auto-approve'
+              }
+
             }
         }
     }
