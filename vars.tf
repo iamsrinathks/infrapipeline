@@ -9,7 +9,7 @@ variable "AWS_SECRET_KEY" {
 variable "KEY_PATH" {
   type = map(string)
   default = {
-    public  = "~/var/lib/jenkins/aws_key.pub"
+    public  = "/var/lib/jenkins/aws_key.pub"
   }
 }
 
