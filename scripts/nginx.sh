@@ -1,10 +1,6 @@
 #!/bin/bash
 sudo apt update
 sudo apt upgrade -y
-sudo apt install nginx -y
-sudo systemctl enable nginx
-sudo systemctl start nginx
-sudo service ufw stop
 sudo apt install docker.io -y
 sudo apt install docker-compose -y
 sudo service ufw stop
