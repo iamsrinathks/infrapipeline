@@ -2,14 +2,21 @@ pipeline {
   agent {
     label 'infra'
   }
+  options {
+        buildDiscarder(logRotator(daysToKeepStr: '7', numToKeepStr: '50'))
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+  }
+  
   parameters {
     choice choices: ['apply', 'destroy'], description: 'Terraform apply / destroy', name: 'ACTION'
   }
 
   stages {
-    stage('terraform format check') {
+    stage('formatting and validating the files') {
       steps {
         sh 'terraform fmt'
+        sh 'terraform validate -json'
       }
     }
 
