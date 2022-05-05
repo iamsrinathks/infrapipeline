@@ -1,7 +1,6 @@
 pipeline {
-  agent {
-    label 'any'
-  }
+  agent any
+  
   options {
         buildDiscarder(logRotator(daysToKeepStr: '7', numToKeepStr: '50'))
         timestamps()
