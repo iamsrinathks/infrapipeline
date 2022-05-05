@@ -2,7 +2,9 @@ pipeline {
     agent {
         label 'infra'
     }
-
+parameters {
+  choice choices: ['apply', 'destroy'], description: 'Terraform apply / destroy', name: 'ACTION'
+}
     stages {
         stage('terraform format check') {
             steps{
@@ -26,10 +28,22 @@ pipeline {
         }
         stage('terraform apply') {
             steps {
-                   withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh 'terraform apply --auto-approve'
-                  }
-              }
+                   //withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    //sh 'terraform apply --auto-approve'
+                  //}
+              //}
+            
+                script{  
+                    if (params.ACTION == "apply") {
+                        withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh 'terraform apply --auto-approve'
+                        }
+                    } else {
+                        withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh 'terraform destroy --auto-approve'
+                        } 
+                    }  
+                }
             }
-      }
+        }
  }
