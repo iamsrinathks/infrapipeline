@@ -1,4 +1,4 @@
-data "cloudinit_config" "config" {
+data "cloudinit_config" "assessment_config" {
   gzip          = false
   base64_encode = false
 
