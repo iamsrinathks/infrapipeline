@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'infra'
+    label 'any'
   }
   options {
         buildDiscarder(logRotator(daysToKeepStr: '7', numToKeepStr: '50'))
