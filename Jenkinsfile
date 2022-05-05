@@ -11,6 +11,13 @@ pipeline {
         containers:
         - name: terraform
           image: hashicorp/terraform:1.2.0-rc1
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
+              memory: 300Mi
+              cpu: 150m
           command:
           - cat
           tty: true
@@ -42,7 +49,7 @@ pipeline {
 
         stage('terraform apply') {
           steps {
-            
+
                 container('terraform') {
                     steps {
                         withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
