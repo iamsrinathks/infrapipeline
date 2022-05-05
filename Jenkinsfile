@@ -27,10 +27,15 @@ pipeline {
         }
         stage('terraform apply') {
             steps {
-            withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                sh 'terraform apply --auto-approve'
+              if (params.isapply == true) {
+                 withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform apply --auto-approve'
+                  }
               }
-
+             else {
+                 withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform destroy --auto-approve'
+                }
             }
         }
     }
