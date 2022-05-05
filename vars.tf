@@ -1,7 +1,3 @@
-variable "AWS_REGION" {
-  default = "eu-west-2"
-}
-
 variable "AMIS" {
   type = map(string)
   default = {
@@ -12,21 +8,6 @@ variable "AMIS" {
 variable "INSTANCE_TYPE" {
   type    = string
   default = "t2.micro"
-}
-
-variable "VPC_CIDR_BLOCK" {
-  type    = string
-  default = "10.1.0.0/16"
-}
-
-variable "SUBNET_CIDR_BLOCK" {
-  type    = string
-  default = "10.1.1.0/24"
-}
-
-variable "SUBNET_AVAILABILITY_ZONE" {
-  type    = string
-  default = "eu-west-2a"
 }
 
 variable "TAGS" {
@@ -84,48 +65,6 @@ variable "SG_RULES_EGRESS" {
       cidr_blocks = "0.0.0.0/0"
       protocol    = "-1"
       description = "Allow All Traffic"
-    }
-  ]
-}
-
-variable "NACL_RULES_INGRESS" {
-  type = list(object({
-    protocol   = number
-    rule_no    = number
-    action     = string
-    cidr_block = string
-    from_port  = number
-    to_port    = number
-  }))
-  default = [
-    {
-      protocol   = -1
-      rule_no    = 100
-      action     = "allow"
-      cidr_block = "0.0.0.0/0"
-      from_port  = 0
-      to_port    = 0
-    }
-  ]
-}
-
-variable "NACL_RULES_EGRESS" {
-  type = list(object({
-    protocol   = number
-    rule_no    = number
-    action     = string
-    cidr_block = string
-    from_port  = number
-    to_port    = number
-  }))
-  default = [
-    {
-      protocol   = -1
-      rule_no    = 100
-      action     = "allow"
-      cidr_block = "0.0.0.0/0"
-      from_port  = 0
-      to_port    = 0
     }
   ]
 }
