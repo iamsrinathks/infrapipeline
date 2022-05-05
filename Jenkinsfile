@@ -22,44 +22,51 @@ pipeline {
           - cat
           tty: true
       '''
+      }
   }
-    }
 
+  options {
+    timestamps()
+    timeout(time: 30, unit: 'MINUTES')
+  }
 
     stages {
-        stage('terraform format check') {
-            steps{
-          container('terraform') {
-
-              sh 'terraform fmt'
-            }
-          }
-        }
-
-
-        stage('terraform init') {
+        stage('Prepare') {
             steps {
-            container('terraform') {
-
-                sh 'terraform init'
+              container('terraform') {
+                sh '''
+                  terraform init
+                  terraform validate
+                '''
+              }
             }
           }
-        }
 
 
-        stage('terraform apply') {
-          steps {
-
-                container('terraform') {
-                    
-                        withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                            sh 'terraform apply --auto-approve'
-                          }
-
+        stage('Plan') {
+            steps {
+              container('terraform') {
+                  withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                      sh '''
+                        terraform plan
+                      '''
+                    }
                 }
-
-          }
+            }
         }
 
-      }
+
+        stage('Apply') {
+          steps {
+            container('terraform') {
+                withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '''
+                        terraform apply --auto-approve
+                    '''
+                    }
+                }
+            }
+        }
+
+    }
 }
