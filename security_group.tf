@@ -1,6 +1,6 @@
-resource "aws_security_group" "sec_group" {
-  name        = "sg"
-  description = "Security group for webserver ec2"
+resource "aws_security_group" "assessment_sg" {
+  name        = "assessment_sg"
+  description = "Security group"
 
   dynamic "ingress" {
     for_each = var.SG_RULES_INGRESS
@@ -21,5 +21,7 @@ resource "aws_security_group" "sec_group" {
       protocol    = egress.value["protocol"]
     }
   }
+
+  tags = { for k, v in var.TAGS : k => lower(v) }
 
 }
