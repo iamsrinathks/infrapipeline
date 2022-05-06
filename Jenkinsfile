@@ -34,12 +34,14 @@ pipeline {
         stage('Prepare') {
             steps {
               container('terraform') {
-                sh '''
-                  terraform init
-                  terraform validate
-                '''
+                  withCredentials([usernamePassword(credentialsId: 'aws_jenkins_creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                      sh '''
+                        terraform init
+                        terraform validate
+                        '''
+                      }
+                  }
               }
-            }
           }
 
 
