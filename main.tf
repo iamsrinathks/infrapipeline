@@ -18,7 +18,7 @@ data "template_file" "script" {
 
 
 module "vpc" {
-  source = "./terraform-aws-modules/vpc/aws"
+  source = "terraform-aws-modules/vpc/aws"
 
   name = var.vpc_name
   cidr = var.vpc_cidr
@@ -36,7 +36,7 @@ module "vpc" {
 
 
 module "assessment_webapp_sg" {
-  source = "./terraform-aws-modules/security-group/aws"
+  source = "terraform-aws-modules/security-group/aws"
 
   name        = "assessment-webapp-sg"
   description = "Security group for EC2 instance"
@@ -64,7 +64,7 @@ module "assessment_webapp_sg" {
 
 
 module "assessment_alb_sg" {
-  source = "./terraform-aws-modules/security-group/aws"
+  source = "terraform-aws-modules/security-group/aws"
 
   name        = "assessment-alb-sg"
   description = "Security group for ALB"
@@ -85,7 +85,7 @@ module "assessment_alb_sg" {
 
 
 module "ec2_instance" {
-  source  = "./terraform-aws-modules/ec2-instance/aws"
+  source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
 
   name = "webapp_assessment"
