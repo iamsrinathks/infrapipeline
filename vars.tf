@@ -6,7 +6,15 @@ variable "AWS_SECRET_KEY" {
   
 }
 
-^(?!0\.0\.0\.0\/0$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/(3[0-2]|[12]?[0-9]))$
+variable "ip_cidr" {
+  type        = string
+  description = "CIDR notation with subnet mask"
+
+  validation {
+    condition = can(regex("^(?!0\\.0\\.0\\.0\\/0$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\/(3[0-2]|[12]?[0-9]))$"))
+    error_message = "Invalid CIDR notation. Subnet mask cannot be 0.0.0.0/0."
+  }
+}
 
 variable "KEY_PATH" {
   type = map(string)
