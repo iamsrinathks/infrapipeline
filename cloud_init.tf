@@ -18,6 +18,7 @@ locals {
   modified_firewall_rules = [
     for rule in var.firewall_rules : {
       name          = "prefix-" + (length(rule.name) > 63 ? trim(rule.name, 63) : rule.name)
+      rule_name = can(rule.name) ? "${local.prefix}${substr(rule.name, 0, min(length(rule.name), 63 - length(local.prefix)))}" : null
       allow         = can(rule.allow) ? [
         for allow_rule in rule.allow : {
           ports    = allow_rule.ports
