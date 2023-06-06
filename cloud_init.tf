@@ -36,4 +36,12 @@ locals {
     }
   ]
 }
+      
+locals {
+  modified_firewall_rules = {
+    for rule_key, rule_value in var.firewall_rules :
+      "${can(rule_value.deny) ? "deny" : "allow"}-istio-${substr(rule_key, 0, 63 - length("${can(rule_value.deny) ? "deny" : "allow"}-istio-"))}" => rule_value
+  }
+}
+
 
