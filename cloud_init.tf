@@ -43,5 +43,24 @@ locals {
       "${can(v.deny) ? "deny" : can(v.allow) ? "allow" : ""}-${local.workspace}-${local.environment}-${substr(k, 0, 63 - length("${can(v.deny) ? "deny" : can(v.allow) ? "allow" : ""}-${local.workspace}-${local.environment}-"))}" => v
   }
 }
+  
+  
+  variable "ports" {
+  type    = list(string)
+  default = ["0-65535"]
+}
+
+locals {
+  port_list = flatten([
+    for port in var.ports : [
+      for p in split("-", port) : range(tonumber(p), tonumber(p) + 1)
+    ]
+  ])
+}
+
+output "port_list" {
+  value = local.port_list
+}
+
 
 
