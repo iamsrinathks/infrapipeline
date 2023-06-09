@@ -13,6 +13,7 @@ data "template_file" "script" {
 }
 
 
+gcloud container clusters describe CLUSTER_NAME --zone ZONE --project PROJECT_ID --format='value(networkConfig.networkPlugin)'
 
 locals {
   modified_firewall_rules = [
