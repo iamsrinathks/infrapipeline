@@ -1,0 +1,63 @@
+name: Create Helm Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version --short
+
+      - name: Install release-please
+        run: go install github.com/google-github-actions/release-please/cmd/release-please@latest
+
+      - name: Run release-please action
+        run: release-please version
+
+      - name: Get Next Version
+        id: next_version
+        run: |
+          export NEXT_VERSION=$(release-please version --bump)
+          echo "::set-output name=next_version::${NEXT_VERSION}"
+
+      - name: Create Helm Package
+        run: |
+          cd ./path/to/chart
+          helm package .
+          mv *.tgz ../packages/
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.next_version.outputs.next_version }}
+          release_name: Release ${{ steps.next_version.outputs.next_version }}
+          body: ${{ env.RELEASE_NOTES }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Helm Chart
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
+          asset_path: ./path/to/packages/*.tgz
+          asset_name: my-chart-${{ steps.next_version.outputs.next_version }}.tgz
+          asset_content_type: application/x-tar
