@@ -15,9 +15,13 @@ data "template_file" "script" {
 
 
 firewall_rules = [
-  coalesce(rule['deny'], rule['allow'], '') != "" ? substr(lower("${coalesce(rule['deny'], rule['allow'])}-${local.workspace}-${local.environment_short_code}-${rule['name']}"), 0, 63) : null
-  for rule in local.concat_firewall_rules
+  tomap(compact([
+    for rule in local.concat_firewall_rules :
+    for k, v in rule :
+    "${can(v.deny) || can(v.allow) ? substr(lower(can(v.deny) ? "deny" : "allow")-${local.workspace}-${local.environment_short_code}-${k}), 0, 63) => v : null}"
+  ]))
 ]
+
 
 
  
