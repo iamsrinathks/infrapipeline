@@ -13,24 +13,15 @@ data "template_file" "script" {
 }
 
 
-
 firewall_rules = [
-  tomap(compact([
-    for rule in local.concat_firewall_rules :
-    for k, v in rule :
-    "${can(v.deny) || can(v.allow) ? substr(lower(can(v.deny) ? "deny" : "allow")-${local.workspace}-${local.environment_short_code}-${k}), 0, 63) => v : null}"
-  ]))
-]
-
-
-firewall_rules = [
+  for rule in local.concat_firewall_rules :
   tomap({
-    for rule in local.concat_firewall_rules :
     for k, v in rule :
-    "${can(v.deny) || can(v.allow) ? {
-      "${can(v.deny) && v.deny != "" ? "deny" : ""}-${local.workspace}-${local.environment_short_code}-${k}" => v.deny,
-      "${can(v.allow) && v.allow != "" ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}" => v.allow
-    } : null}"
+    substr(lower("${can(v.deny) ? "deny" : can(v.allow) ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) =>
+    {
+      allow = can(v.allow) && length(v.allow) > 0 ? v.allow : null,
+      deny  = can(v.deny) && length(v.deny) > 0 ? v.deny : null
+    }
   })
 ]
 
