@@ -16,17 +16,18 @@ data "template_file" "script" {
 firewall_rules = [
   for rule in local.concat_firewall_rules :
   tomap({
-    for k, v in rule : substr(lower("${length(v.deny) > 0 ? "deny" : length(v.allow) > 0 ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => {
-      allow = v.allow,
-      deny  = v.deny
+    for k, v in rule : substr(lower("${can(v.deny) ? "deny" : can(v.allow) ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => {
+      allow = can(v.allow) ? v.allow : [],
+      deny  = can(v.deny) ? v.deny : []
     }
-    if length(v.deny) == 0 && length(v.allow) == 0 : "skip" => {}
-  })
+    if can(v.deny) || can(v.allow) : "skip" => {}
+  }) 
   if length(rule) > 0
 ]
 
 
-  
+    
+    
 gcloud container clusters describe CLUSTER_NAME --zone ZONE --project PROJECT_ID --format='value(networkConfig.networkPlugin)'
 
 locals {
