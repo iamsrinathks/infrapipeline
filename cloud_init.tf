@@ -29,6 +29,13 @@ firewall_rules = [
     for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("${can(v.deny) ? "deny" : can(v.allow) ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v })
   ]
 
+      
+      firewall_rules = [
+  for rule in local.concat_firewall_rules : {
+    for k, v in rule : substr(lower("$${${v.allow != "" ? "allow" : v.deny != "" ? "deny" : ""}}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
+  }
+]
+
 gcloud container clusters describe CLUSTER_NAME --zone ZONE --project PROJECT_ID --format='value(networkConfig.networkPlugin)'
 
 locals {
