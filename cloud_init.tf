@@ -13,49 +13,11 @@ data "template_file" "script" {
 }
 
 firewall_rules = [
-  for rule in local.concat_firewall_rules : {
-    for k, v in rule : substr(lower("$${if v.deny != null && v.deny != \"\" then \"deny\" else if v.allow != null && v.allow != \"\" then \"allow\" else \"\"}-${local.workspace}-${local.environment_short_code}-${k}\""), 0, 63) => v
-  }
-]
-
-firewall_rules = [
-  for rule in local.concat_firewall_rules : {
-    for k, v in rule : substr(lower("$${coalesce("deny", coalesce("allow", ""))}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
-  }
-]
-
-    
-    firewall_rules = [
-    for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("${can(v.deny) ? "deny" : can(v.allow) ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v })
-  ]
-
-      
-      firewall_rules = [
-  for rule in local.concat_firewall_rules : {
-    for k, v in rule : substr(lower("$${${v.allow != "" ? "allow" : v.deny != "" ? "deny" : ""}}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
-  }
-]
-
-    
-firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("${${compact([can(v.deny) ? "deny" : "", can(v.allow) ? "allow" : ""]})}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v })
-]
-
-    
-    firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("$${${length(v.allow) > 0 ? "allow" : "deny"}-${local.workspace}-${local.environment_short_code}-${k}"}), 0, 63) => v })
-]
-      
-      firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("$${${v.deny[0] != null ? "deny" : (length(v.allow) > 0 ? "allow" : "")}-${local.workspace}-${local.environment_short_code}-${k}"}), 0, 63) => v })
-]
-
-        
-        firewall_rules = [
   for rule in local.concat_firewall_rules : tomap({
-    for k, v in rule : substr(lower("${if v.deny != null && length(v.deny) > 0 then "deny" else if v.allow != null && length(v.allow) > 0 then "allow" else ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
+    for k, v in rule : substr(lower("${can(v.deny) && length(v.deny) > 0 ? "deny" : can(v.allow) && length(v.allow) > 0 ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
   })
 ]
+
 
 
 gcloud container clusters describe CLUSTER_NAME --zone ZONE --project PROJECT_ID --format='value(networkConfig.networkPlugin)'
