@@ -24,6 +24,14 @@ firewall_rules = [
   }
 ]
 
+firewall_rules = [
+  for rule in local.concat_firewall_rules : {
+    for k, v in rule : substr(lower(<<EOT
+$${if v.deny != null && v.deny != "" then "deny" else if v.allow != null && v.allow != "" then "allow" else ""}-${local.workspace}-${local.environment_short_code}-${k}
+EOT
+    )), 0, 63) => v
+  }
+]
 
 
 
