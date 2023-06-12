@@ -12,18 +12,12 @@ data "template_file" "script" {
   template = file("scripts/nginx.sh")
 }
 
-firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({
-    for k, v in rule : substr(lower("${can(v.deny) && length(v.deny) > 0 ? "deny" : can(v.allow) && length(v.allow) > 0 ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
-  })
-]
-    
-    firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({
-    for k, v in rule : substr(lower("${v.deny != null && v.deny != "" ? "deny" : v.allow != null && v.allow != "" ? "allow" : ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
-  })
-]
 
+    firewall_rules = [
+  for rule in local.concat_firewall_rules : {
+    for k, v in rule : substr(lower("$${if can(v.deny) && length(v.deny) > 0 then "deny" else if can(v.allow) && length(v.allow) > 0 then "allow" else ""}${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
+  }
+]
 
 
 
