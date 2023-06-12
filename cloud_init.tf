@@ -13,16 +13,8 @@ data "template_file" "script" {
 }
 
 firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("${if v.deny != null && v.deny != \"\" then \"deny\" else if v.allow != null && v.allow != \"\" then \"allow\" else \"\"}-${local.workspace}-${local.environment_short_code}-${k}\""), 0, 63) => v })
-]
-
-firewall_rules = [
-  for rule in local.concat_firewall_rules : tomap({ for k, v in rule : substr(lower("${if v.deny != null && v.deny != \"\" then \"deny\" else if v.allow != null && v.allow != \"\" then \"allow\" else \"\"}-${local.workspace}-${local.environment_short_code}-${k}\""), 0, 63) => v })
-]
-   
-    firewall_rules = [
   for rule in local.concat_firewall_rules : {
-    for k, v in rule : substr(lower("${if v.deny != null && v.deny != \"\" then \"deny\" else if v.allow != null && v.allow != \"\" then \"allow\" else \"\"}-${local.workspace}-${local.environment_short_code}-${k}\""), 0, 63) => v
+    for k, v in rule : substr(lower("$${if v.deny != null && v.deny != "" then "deny" else if v.allow != null && v.allow != "" then "allow"}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
   }
 ]
 
