@@ -19,7 +19,27 @@ data "template_file" "script" {
   }
 ]
 
+firewall_rules = [
+  for rule in local.concat_firewall_rules : {
+    for k, v in rule : substr(lower("$${if can(v.deny) && length(v.deny) > 0 then "deny" else if can(v.allow) && length(v.allow) > 0 then "allow" else ""},${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
+  }
+]
 
+    firewall_rules = [
+  for rule in local.concat_firewall_rules : {
+    for k, v in rule : substr(lower("$${if can(v.deny) && length(v.deny) > 0 then "deny", else if can(v.allow) && length(v.allow) > 0 then "allow", else ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
+  }
+]
+
+    
+
+firewall_rules = [
+for rule in local.concat_firewall_rules:
+{
+for k, v in rule.items():
+substr(lower("$${if can(v.deny) and len(v.deny) > 0 then "deny", else if can(v.allow) and len(v.allow) > 0 then "allow", else ""}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
+}
+]
 
 gcloud container clusters describe CLUSTER_NAME --zone ZONE --project PROJECT_ID --format='value(networkConfig.networkPlugin)'
 
