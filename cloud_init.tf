@@ -14,26 +14,15 @@ data "template_file" "script" {
 
 firewall_rules = [
   for rule in local.concat_firewall_rules : {
-    for k, v in rule : substr(lower("$${if v.deny != null && v.deny != "" then "deny" else if v.allow != null && v.allow != "" then "allow"}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
-  }
-]
-
-firewall_rules = [
-  for rule in local.concat_firewall_rules : {
     for k, v in rule : substr(lower("$${if v.deny != null && v.deny != \"\" then \"deny\" else if v.allow != null && v.allow != \"\" then \"allow\" else \"\"}-${local.workspace}-${local.environment_short_code}-${k}\""), 0, 63) => v
   }
 ]
 
 firewall_rules = [
   for rule in local.concat_firewall_rules : {
-    for k, v in rule : substr(lower(<<EOT
-$${if v.deny != null && v.deny != "" then "deny" else if v.allow != null && v.allow != "" then "allow" else ""}-${local.workspace}-${local.environment_short_code}-${k}
-EOT
-    )), 0, 63) => v
+    for k, v in rule : substr(lower("$${coalesce("deny", coalesce("allow", ""))}-${local.workspace}-${local.environment_short_code}-${k}"), 0, 63) => v
   }
 ]
-
-
 
 
 gcloud container clusters describe CLUSTER_NAME --zone ZONE --project PROJECT_ID --format='value(networkConfig.networkPlugin)'
