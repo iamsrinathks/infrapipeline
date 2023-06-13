@@ -104,3 +104,25 @@ variable "SG_RULES_EGRESS" {
     }
   ]
 }
+
+
+args:
+  - --provider={{ .Values.provider }}
+  {{- range $provider, $args := .Values.providerArgs }}
+  {{- if eq $.Values.provider $provider }}
+  {{- range $arg, $value := $args }}
+  - --{{ $arg }}={{ $value }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+
+
+
+provider: google
+providerArgs:
+  google:
+    project: my-project
+    zone: my-zone
+  aws:
+    region: us-west-2
+
