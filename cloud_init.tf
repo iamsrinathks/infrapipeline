@@ -78,5 +78,14 @@ output "port_list" {
   value = local.port_list
 }
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ip-masq-agent-config
+  namespace: kube-system
+data:
+  config: |
+    nonMasqueradeCIDRs:
+    - <POD_CIDR>
 
 
