@@ -1,3 +1,4 @@
+gcloud compute instances create INSTANCE_NAME --project=YOUR_PROJECT_ID --network=projects/HOST_PROJECT_ID/global/networks/NETWORK_NAME
 variable "AWS_ACCESS_KEY" {
   
 }
