@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <local.deployment_name>
+  namespace: <local.namespace>
+  labels:
+    <labels from module.this.tags>
+spec:
+  replicas: <var.replicas>
+  selector:
+    matchLabels:
+      <labels from module.this.tags>
+  template:
+    metadata:
+      namespace: <local.namespace>
+      labels:
+        <labels from module.this.tags>
+      annotations:
+        <var.deployment_annotations>
+    spec:
+      serviceAccountName: <local.service_account_name>
+      automountServiceAccountToken: true
+      containers:
+        - image: <var.agent_image>
+          name: tfc-agent
+          args: <var.agent_cli_args>
+          env:
+            - name: TFC_AGENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: token
+                  name: <local.deployment_name>
+            - name: TFC_AGENT_NAME
+              value: <coalesce(module.this.id, "tfc-agent")>
+            - name: TFC_AGENT_LOG_LEVEL
+              value: <var.tfc_agent_log_level>
+            - name: TFC_AGENT_SINGLE
+              value: <var.tfc_agent_single>
+            - name: TFC_AGENT_DISABLE_UPDATE
+              value: <var.tfc_agent_disable_update>
+            - name: TFC_ADDRESS
+              value: <var.tfc_address>
+            - name: TFC_AGENT_DATA_DIR
+              value: <var.tfc_agent_data_dir>  # Dynamic block not shown
+            - name: <env.key>
+              value: <env.value>  # Dynamic block not shown
+          resources:
+            limits:
+              cpu: <var.resource_limits_cpu>
+              memory: <var.resource_limits_memory>
+            requests:
+              cpu: <var.resource_requests_cpu>
+              memory: <var.resource_requests_memory>
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: <local.deployment_name>-autoscaler
+  namespace: <local.namespace>
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: <local.deployment_name>
+  minReplicas: <min_replicas>
+  maxReplicas: <max_replicas>
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: <target_cpu_utilization>
