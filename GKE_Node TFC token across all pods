@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tfc-token-secret
+type: Opaque
+data:
+  token: <base64-encoded-token>
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: my-daemonset
+spec:
+  template:
+    spec:
+      containers:
+      - name: my-container
+        image: my-image
+        volumeMounts:
+        - name: tfc-token-volume
+          mountPath: /etc/tfc/token
+  volumes:
+  - name: tfc-token-volume
+    secret:
+      secretName: tfc-token-secret
