@@ -1,0 +1,137 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: tfc-agent-daemonset
+  labels:
+    app: tfc-agent
+spec:
+  selector:
+    matchLabels:
+      app: tfc-agent
+  template:
+    metadata:
+      labels:
+        app: tfc-agent
+    spec:
+      volumes:
+        - name: root-mount
+          hostPath:
+            path: /
+        - name: entrypoint
+          configMap:
+            name: entrypoint
+            defaultMode: 0744
+      initContainers:
+        - image: ubuntu:18.04
+          name: node-initializer
+          command: ["/scripts/entrypoint.sh"]
+          env:
+            - name: ROOT_MOUNT_DIR
+              value: /root
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: root-mount
+              mountPath: /root
+            - name: entrypoint
+              mountPath: /scripts
+      containers:
+        - name: tfc-agent
+          image: your-tfc-agent-image:tag
+          env:
+            - name: TFE_AGENT_TOKEN
+              value: your_tfc_agent_token_here
+          # Add any other environment variables and configuration as needed
+          # Mount the necessary volumes if required
+
+
+----------------------------------------------
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DEBIAN_FRONTEND=noninteractive
+ROOT_MOUNT_DIR="${ROOT_MOUNT_DIR:-/root}"
+
+echo "Installing dependencies"
+apt-get update
+apt-get install -y apt-transport-https curl gnupg lsb-release
+
+echo "Installing gcloud SDK"
+export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+apt-get update
+apt-get install -y google-cloud-sdk
+
+echo "Getting node metadata"
+NODE_NAME="$(curl -sS http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')"
+ZONE="$(curl -sS http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google' | awk -F  "/" '{print $4}')"
+
+echo "Setting up disks"
+DISK_NAME="$NODE_NAME-additional"
+
+if ! gcloud compute disks list --filter="name:$DISK_NAME" | grep "$DISK_NAME" > /dev/null; then
+    echo "Creating $DISK_NAME"
+    gcloud compute disks create "$DISK_NAME" --size=1024 --zone="$ZONE"
+else
+    echo "$DISK_NAME already exists"
+fi
+
+if ! gcloud compute instances describe "$NODE_NAME" --zone "$ZONE" --format '(disks[].source)' | grep "$DISK_NAME" > /dev/null; then
+    echo "Attaching $DISK_NAME to $NODE_NAME"
+    gcloud compute instances attach-disk "$NODE_NAME" --device-name=sdb --disk "$DISK_NAME" --zone "$ZONE"
+else
+    echo "$DISK_NAME is already attached to $NODE_NAME"
+fi
+
+# We use chroot to run the following commands in the host root (mounted as the /root volume in the container)
+echo "Installing nano"
+chroot "${ROOT_MOUNT_DIR}" apt-get update
+chroot "${ROOT_MOUNT_DIR}" apt-get install -y nano
+
+echo "Loading Kernel modules"
+# Load the bridge kernel module as an example
+chroot "${ROOT_MOUNT_DIR}" modprobe bridge
+
+# Initialize Terraform Cloud Agent
+echo "Initializing Terraform Cloud Agent"
+curl -fsSL -o /usr/local/bin/tfc-agent https://releases.hashicorp.com/tfc-agent/latest/tfc-agent_linux_amd64
+chmod +x /usr/local/bin/tfc-agent
+
+cat <<EOF > /etc/systemd/system/tfc-agent.service
+[Unit]
+Description=Terraform Cloud Agent
+
+[Service]
+ExecStart=/usr/local/bin/tfc-agent run --token \$TFE_AGENT_TOKEN
+Restart=always
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Set your TFC agent token here
+export TFE_AGENT_TOKEN="your_tfc_agent_token_here"
+
+# Start the TFC agent service
+systemctl enable tfc-agent.service
+systemctl start tfc-agent.service
+
+# Your script continues below...
