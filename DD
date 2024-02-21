@@ -1,0 +1,154 @@
+Certainly! Below is a simple design document for the provided Dockerfile. This document outlines the purpose, components, and considerations for the Dockerfile.
+
+# Dockerfile Design Document
+
+## 1. Objective
+
+The objective of this Dockerfile is to create a lightweight Docker image that includes the necessary tools (`kubectl`, `helm`, `kustomize`) and a user-provided script (`your-script.sh`). The image is designed to be minimal, secure, and non-root, following best practices for containerization.
+
+## 2. Components
+
+### 2.1 Build Stage
+
+#### Base Image
+- Alpine Linux: `FROM alpine as builder`
+  - A minimal and lightweight Linux distribution suitable for creating small Docker images.
+
+#### Work Directory
+- `/tmp`: `WORKDIR /tmp`
+  - Temporary working directory for the build stage.
+
+#### Tools Installation
+- `apk --no-cache add curl tar`
+  - Installs `curl` and `tar` for downloading and extracting tools.
+
+#### Download and Extract Tools
+- Copies and extracts `kubectl.tar.gz`, `helm.tar.gz`, and `kustomize.tar.gz`.
+  - `tar -xzf kubectl.tar.gz`
+  - `tar -xzf helm.tar.gz`
+  - `tar -xzf kustomize.tar.gz`
+
+### 2.2 Final Stage
+
+#### Base Image
+- Alpine Linux: `FROM alpine`
+  - A minimal and lightweight Linux distribution for the final image.
+
+#### Copy Binaries
+- Copies binaries from the build stage to the final image.
+  - `kubectl`, `helm`, `kustomize` are copied to `/usr/local/bin/`.
+
+#### Copy Script
+- Copies the user-provided script (`your-script.sh`) to `/usr/local/bin/`.
+
+#### User Setup
+- `adduser -D nonrootuser`
+  - Creates a non-root user named `nonrootuser`.
+
+#### Set Non-root User
+- `USER nonrootuser`
+  - Sets the non-root user for subsequent commands.
+
+#### Command
+- `CMD ["/usr/local/bin/your-script.sh"]`
+  - Specifies the default command to execute when a container is started.
+
+## 3. Considerations
+
+### 3.1 Lightweight Image
+- The final image is designed to be minimal, containing only the necessary tools and the user-provided script.
+
+### 3.2 Security
+- The image follows security best practices by not running as the root user.
+
+### 3.3 Dependency Considerations
+- The script and any dependencies should be compatible with the minimal Alpine Linux environment.
+
+### 3.4 Multi-stage Build
+- Utilizes a multi-stage build to separate the build environment from the final lightweight image.
+
+## 4. Usage
+
+To build the Docker image, execute the following command in the directory containing the Dockerfile:
+
+```bash
+docker build -t your-image-name .
+```
+
+This document provides a high-level overview of the design decisions and considerations for the Dockerfile. Adjustments may be needed based on specific use cases and requirements.
+****************************************
+*****************************************
+*****************************************
+
+
+
+
+Certainly! Below is a design document outlining the purpose of the Dockerfile and the process it facilitates for bootstrapping a tooling cluster.
+
+## Design Document: Dockerfile for Bootstrapping Tooling Cluster
+
+### Objective:
+The primary goal of this Dockerfile is to create a lightweight and efficient Docker image capable of bootstrapping a tooling cluster. The tooling cluster involves essential components like kubectl, Helm, and Kustomize, along with a custom script for generating rendered bootstrap manifests for various environments.
+
+### Dockerfile Components:
+
+#### Build Stage (`alpine` as builder):
+- **Purpose:**
+  - Installs necessary tools (`curl`, `tar`) for downloading and extracting binaries.
+  - Downloads and extracts kubectl, Helm, and Kustomize binaries.
+
+- **Actions:**
+  - Uses Alpine Linux as a base image.
+  - Sets the working directory to `/tmp`.
+  - Installs `curl` and `tar`.
+  - Copies compressed binaries (kubectl, Helm, Kustomize) into the build image.
+  - Extracts binaries using `tar`.
+
+#### Final Stage (`alpine`):
+- **Purpose:**
+  - Creates the final Docker image with only the necessary tools and binaries for the tooling cluster.
+  - Adds a non-root user for enhanced security.
+
+- **Actions:**
+  - Uses Alpine Linux as a minimalistic base image.
+  - Copies binaries from the build stage to `/usr/local/bin`.
+  - Copies the custom script (`your-script.sh`) to `/usr/local/bin`.
+  - Creates a non-root user (`nonrootuser`).
+  - Sets the non-root user as the default user for the image.
+  - Specifies the custom script (`your-script.sh`) as the default command to execute when the container starts.
+
+### Custom Script (`your-script.sh`):
+- **Purpose:**
+  - Generates rendered bootstrap manifests for each environment.
+  - Utilizes `kustomize` with Helm enabled to customize manifests.
+  - Copies the template `manifest-kustomize.yaml` to the appropriate destination for each environment.
+  - Runs `kubectl kustomize` to generate bootstrap manifests.
+  - Outputs the final manifests to the `manifests` directory.
+
+- **Script Flow:**
+  - Iterates through environment folders within `envs/`.
+  - For each environment, checks if it is a directory.
+  - Creates a destination directory (`manifests/${cluster_folder}`).
+  - Copies the template `manifest-kustomize.yaml` to the destination (`kustomization.yaml`).
+  - Changes to the environment folder (`cd "${cluster_folder}"`).
+  - Runs `kubectl kustomize --enable-helm` to generate bootstrap manifests.
+  - Outputs the final manifests to `manifests/${cluster_folder}/bootstrap.yaml`.
+
+### Usage:
+- Build the Docker image:
+  ```bash
+  docker build -t tooling-cluster-bootstrap .
+  ```
+
+- Run the Docker container:
+  ```bash
+  docker run -it tooling-cluster-bootstrap
+  ```
+
+### Conclusion:
+This Dockerfile encapsulates the essential components required for bootstrapping a tooling cluster, providing a clean and minimalistic environment for generating bootstrap manifests across various environments.
+
+### Considerations:
+- Ensure that the custom script (`your-script.sh`) and any dependencies are compatible with the minimal Alpine Linux environment.
+- Handle any specific shell dependencies or compatibility issues in the custom script.
+- Adjust the Dockerfile and custom script as needed based on actual project requirements and directory structures.
